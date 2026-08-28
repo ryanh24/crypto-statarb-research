@@ -37,17 +37,24 @@ CryptoStatArb/
 
 ## Data workflow
 
-Run **`download_data.ipynb`** once to pull the shared dataset (18 Binance.US USDT pairs,
-1h bars, ~3y, UTC). It writes to `data/`:
+Run **`download_data.ipynb`** once to build the shared dataset. Universe construction:
+
+1. Keep coins listed on **both Binance.US and Coinbase** (USD/USDT), stablecoins excluded.
+2. Rank by Binance.US 24h volume, take the **top 200** (~140 exist on both).
+3. Download **hourly OHLCV from 2022 → now** (UTC), pruning coins listed too late.
+4. Drop any coin with **< 90%** hourly-bar coverage over the window.
+
+Writes to `data/` (all gitignored — regenerate by re-running):
 
 - `binance_us_hourly_ohlcv.pk` — full Open/High/Low/Close/Volume panel, columns `(Field, Ticker)`.
 - `binance_us_hourly_close.pk` — close-only convenience view.
+- `universe.csv` — final list of kept symbols.
 
 Every other notebook just loads these (no re-fetching):
 
 ```python
 panel = pd.read_pickle('data/binance_us_hourly_ohlcv.pk')
-close = panel['Close']
+close, volume = panel['Close'], panel['Volume']
 ```
 
 ## Setup
