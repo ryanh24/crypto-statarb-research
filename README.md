@@ -25,12 +25,29 @@ style), account for realistic execution costs, and evaluate performance.
 
 ```
 CryptoStatArb/
-├── research.ipynb      # main research notebook (imports, data pull, EDA)
+├── download_data.ipynb # run once -> writes the canonical data pickles
+├── research.ipynb      # main research notebook (reversal/momentum studies)
 ├── docs/
 │   ├── fees.md         # Binance.US fee schedule + t-cost assumptions
-│   └── papers.md       # research paper reading list (arXiv / SSRN)
-├── data/               # price-volume data (gitignored; regenerate via API)
+│   ├── papers.md       # research paper reading list (arXiv / SSRN)
+│   └── market_making_idea.md  # parked: cross-venue lead-lag MM
+├── data/               # price-volume pickles (gitignored; regenerate via download_data.ipynb)
 └── .gitignore
+```
+
+## Data workflow
+
+Run **`download_data.ipynb`** once to pull the shared dataset (18 Binance.US USDT pairs,
+1h bars, ~3y, UTC). It writes to `data/`:
+
+- `binance_us_hourly_ohlcv.pk` — full Open/High/Low/Close/Volume panel, columns `(Field, Ticker)`.
+- `binance_us_hourly_close.pk` — close-only convenience view.
+
+Every other notebook just loads these (no re-fetching):
+
+```python
+panel = pd.read_pickle('data/binance_us_hourly_ohlcv.pk')
+close = panel['Close']
 ```
 
 ## Setup
