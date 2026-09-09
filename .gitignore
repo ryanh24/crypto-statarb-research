@@ -19,6 +19,9 @@ data/*.parquet
 data/*.csv
 !data/.gitkeep
 
+# --- Private notes (mentor feedback, scratch thinking) ---
+notes/
+
 # --- OS / editor ---
 .DS_Store
 .vscode/
