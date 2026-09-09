@@ -1,9 +1,16 @@
 # Strategy Log — what we tried and why it died
 
-A running graveyard of the strategies explored in [`research.ipynb`](../research.ipynb), the test that
-settled each one, and the lesson we carried forward. "Dead" = not significantly profitable **after
-realistic costs / out-of-sample scrutiny**. The most promising lead — long-only momentum — is
-**parked** (unproven out-of-sample), not dead. We've stepped back to pure data analysis for now.
+The prose index of every strategy we tested and rejected, the test that settled each one, and the
+lesson we carried forward. "Dead" = not significantly profitable **after realistic costs /
+out-of-sample scrutiny**. The most promising lead — long-only momentum — is **parked** (unproven
+out-of-sample), not dead.
+
+**Two-notebook convention:**
+- [`research.ipynb`](../research.ipynb) — live EDA and current work only. Kept uncluttered.
+- [`research_failed.ipynb`](../research_failed.ipynb) — the **executable graveyard**: runnable code and
+  output for every rejected strategy below. New failures go here, not in the research notebook.
+
+This file is the summary; the notebook is the evidence.
 
 ## Summary table
 
@@ -21,6 +28,14 @@ realistic costs / out-of-sample scrutiny**. The most promising lead — long-onl
 | 10 | Liquid-coin momentum, two-sided sign | pooled Sharpe | **weak** | 0.18–0.24 pooled; dragged by short leg + LTC |
 | 10a | — short leg (short the losers) | Sharpe over n×h grid | **dead** | negative almost everywhere; crypto drift bounces losers |
 | 10b | — long leg (long the winners) | vs buy-hold + alpha regression | **parked** | +0.82 SR, α t≈2.6, but crash-avoidance & in-sample; OOS test not run |
+| 11 | Correlation / pairs mean-reversion (daily, BTC-residual) | λ gate vs **simulated null** | **dead** | rolling de-meaning manufactures the reversion; a random walk scores t≈−4.2 |
+| 11a | — LTC/BCH specifically | null test + cost + lag decay | **lead, unproven** | passes null, ~10 bps cost, SR 1.23 — but n≈24 trades, SE≈0.7, selected from many |
+| 12 | Hourly pair reversion | lag-decay test + cost/illiquidity corr | **dead** | bid-ask bounce: 1-hour execution delay erases 77–114% of gross SR |
+
+> **Momentum figures caveat:** strategy 10's cells were never committed and were later rebuilt from
+> spec in `research_failed.ipynb`. The rebuild reproduces the key results closely (buy-hold −0.18,
+> corr 0.63, α t≈2.3) but individual Sharpes differ slightly from the numbers in this table. Trust
+> the notebook.
 
 ---
 
@@ -159,3 +174,40 @@ tranches; swept lookback n × hold h.
 4. **Separate long from short.** They are not symmetric in a positively-drifting, hard-to-borrow market.
 5. **Beat the right benchmark.** A long-biased crypto strategy must be judged against buy-and-hold and
    have alpha after regressing it out — not just a positive Sharpe.
+
+---
+
+## 11–12. Correlation / pairs, and why hourly made it worse
+
+Full code and output: [`research_failed.ipynb`](../research_failed.ipynb), sections 5–6.
+
+### 11. Pairs mean-reversion on BTC-neutral residuals — *the reversion was an artifact*
+- **Idea:** raw correlations mostly measure shared BTC beta, so residualize each coin on BTC (own β),
+  then trade pairs whose *residuals* still co-move. Spread trends, so de-mean on a trailing window and
+  trade the z-score — which only needs reversion to the *recent* mean.
+- **The trap:** subtracting a trailing moving average **manufactures** mean reversion. Any random walk
+  minus its own rolling mean looks stationary.
+- **Test:** score the λ gate against a **simulated null** (matched random walks + shuffled increments)
+  instead of the Dickey-Fuller −2.86. A pure random walk scores **median t = −4.15**, so −2.86 flags
+  everything. Against the proper null only **5 of 10** pairs pass — and the appealing ones
+  (ZEC/ZEN privacy coins, DOGE/SHIB memes) **fail**. Co-movement without reversion is untradeable.
+- **The screen does work:** mean net Sharpe **+0.48 for pairs that pass** vs **−0.25 for those that
+  fail**. Most survivors are then killed by 55–90 bps round-trip costs.
+- **Lesson:** simulate the null for *any* transformed series. Ranking, normalizing and rolling
+  de-meaning all create structure; the textbook critical value is usually the wrong one.
+
+### 12. The same idea at hourly frequency — *bid-ask bounce, again*
+- **Idea:** daily holding is too slow; rerun on hourly bars for more observations and faster turnover.
+- **Immediate problem:** at hourly, **30 of 60 coins** have no trade in over half of all hours
+  (staleness correlates **0.80** with the real spread). The universe collapses to 18 coins / 153 pairs.
+- **The tell:** **143 of 153 pairs passed** the null — 19× the chance rate. When 96% of candidates pass,
+  the method is measuring itself.
+- **Four confirmations it was bounce:** (1) all 153 pairs have negative lag-1 autocorrelation;
+  (2) reversion strength rises with pair cost (**+0.51**) as does bounce size (**+0.45**); (3) the
+  "pairs" weren't pairs — single coins alone scored the same as any pair containing them; (4) delaying
+  execution by **one hour erases 77–114%** of the gross Sharpe.
+- **Method lesson:** the shuffled-increment null **cannot** catch this, because shuffling destroys the
+  autocorrelation that *is* the artifact. Use the **lag-decay test** for microstructure. A real edge
+  degrades gracefully as you delay execution; an artifact falls off a cliff in one bar.
+- **Does not contaminate the daily work:** daily residual lag-1 autocorrelations are ≈ −0.03 vs ≈ −0.20
+  hourly, because bounce is a fixed size while daily vol is ~5× hourly vol.
