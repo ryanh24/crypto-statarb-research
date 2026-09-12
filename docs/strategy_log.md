@@ -32,8 +32,8 @@ This file is the summary; the notebook is the evidence.
 | 11a | — LTC/BCH specifically | null test + cost + lag decay | **lead, unproven** | passes null, ~10 bps cost, SR 1.23 — but n≈24 trades, SE≈0.7, selected from many |
 | 12 | Hourly pair reversion | lag-decay test + cost/illiquidity corr | **dead** | bid-ask bounce: 1-hour execution delay erases 77–114% of gross SR |
 | **13** | **Cross-sectional momentum** (rank trailing return → demean → normalize), 9 liquid coins | net-of-cost Sharpe, robustness slices, walk-forward | **LIVE — the project's result** | gross 0.90 → **net 0.46** at 20 bps; costs moved h from 2 to 5 |
-| 13a | — volume as a *sizing* tilt (size down on relative volume, λ<0) | **matched-turnover** frontier + λ inside the walk-forward | **dead, twice** | +20% gross was bought with +45% turnover; chosen 8/8 blocks OOS and costs 0.10 Sharpe |
-| 13b | — re-selecting (n, h) quarterly | walk-forward under 4 selection rules | **freeze instead** | rules span −0.07 to +0.55; n=15 is rank 1–2 of 45 every block but no argmax finds it |
+| 13a | — volume as a *sizing* tilt (size down on relative volume, λ<0) | **matched-turnover** frontier; λ isolated inside the walk-forward | **dead on TRAIN, null OOS** | +20% gross was bought with +45% turnover; best fixed λ is +0.014 OOS against SE 0.59 |
+| 13b | — re-selecting (n, h) quarterly | walk-forward, 3 window schemes × 4 rules | **freeze instead** | frozen spec beats all 12 fitted cells; anchored windows manufacture apparent stability |
 
 > **Momentum figures caveat:** strategy 10's cells were never committed and were later rebuilt from
 > spec in `research_failed.ipynb`. The rebuild reproduces the key results closely (buy-hold −0.18,
@@ -280,18 +280,29 @@ control band.
 - **the matched-turnover edge** has no structure left, and its maximum sits at **λ = +1.5** — the
   *opposite* sign to the hypothesis. An effect that peaks at the wrong sign is not an effect.
 
-**Out-of-sample confirmation.** Put λ into the walk-forward selection set and let the procedure choose it
-quarterly on prior data only:
+**Out-of-sample: a null, not a rejection.** λ was put into the walk-forward selection set. The first
+version of this test let the procedure choose **(n, h, λ) jointly**, and that test is confounded — the
+two window schemes disagree in sign (−0.10 anchored, **+0.30** rolling 18m) because the free run lands on
+a different *lookback* as well as a different λ. It cannot separate "the tilt helped" from "the joint
+search happened to pick a better n". Discarded.
 
-| | OOS net SR | max DD |
-|---|---|---|
-| λ forced to 0 | **+0.641** | −30.6% |
-| λ free to be chosen | **+0.538** | −32.4% |
+Holding **(n, h) fixed at 15/5** and varying only λ over the common OOS span:
 
-The free rule picks a tilt in **8 of 8 blocks** — it always looks best on the data available at the time —
-and allowing it costs **0.10 Sharpe out of sample**. In-sample attractive, out-of-sample costly: the
-signature of fitting noise, not of a weak-but-real effect. Two independent tests now agree, and the
-turnover mechanism explains both.
+| λ (fixed, no selection) | OOS net SR |
+|---|---|
+| 0 — no tilt | 0.609 |
+| −0.5 | 0.624 |
+| −1.0 | 0.569 |
+| −1.5 | 0.479 |
+
+The best fixed tilt beats no-tilt by **+0.014** against a standard error of **0.59** — three quarters of
+an order of magnitude inside the noise. Letting the walk-forward pick λ quarterly gives 0.000 (anchored)
+to −0.076 (rolling). Larger tilts are clearly worse.
+
+**This is a null result and should not be sold as an out-of-sample rejection.** The TRAIN matched-turnover
+frontier and the turnover mechanism remain the stronger evidence. Everything points the same way — no
+reason to carry the tilt, and no evidence it would help — but the OOS span is too short to reject anything
+on its own.
 
 ### 13.3 Robustness: the two arbitrary choices are not load-bearing
 
@@ -315,40 +326,50 @@ Same frozen spec, three slices, nothing re-optimized:
   momentum. It is weaker for a dollar-neutral book that ranks *within* survivors than for a long-only
   one, but it is not zero. Stated, not solved.
 
-### 13.4 Walk-forward: the selection *rule* is the variable
+### 13.4 Walk-forward: the selection rule *and* the window scheme are both variables
 
-Expanding window, quarterly refits, 18-month minimum train, truncated at 2025-07-01. Eight refits,
-732 OOS days.
+Quarterly test blocks tiling exactly, **OOS span fixed at 2023-07 → 2025-07 for every scheme** so only the
+training window varies, truncated before validation. Nine refits, 732 days.
 
-> **Correction.** The first version of this section reported a single number — 0.55 — and concluded "the
-> process transfers." That was one of several defensible selection rules, and it happened to be the best.
-> A walk-forward does not test *a strategy*; it tests *a selection rule*, and the rule must be named
-> before the number means anything.
+> **Correction, twice over.** The first version reported a single number (0.55) and concluded "the process
+> transfers" — that was one selection rule of several, and the best one. The second version fixed the rule
+> question but used only an **anchored** (expanding) window without saying so. Both the rule and the
+> window scheme are free choices, and both matter.
 
-| rule | OOS net SR | what it picks |
-|---|---|---|
-| **R1** n on gross argmax, then h on net — *the rule we actually used* | **−0.07** | n=3 in 5 of 8 blocks |
-| **R2** net argmax over all 45 cells | **+0.55** | n=90 in 8 of 8 |
-| **R3** net argmax on a 3×3-smoothed grid | **+0.20** | n=20 → n=90 |
-| **R4** n by mean net across h, then h on net | **+0.25** | n=30 → n=90 |
+| scheme | R1 | R2 | R3 | R4 | frozen |
+|---|---|---|---|---|---|
+| anchored | −0.07 | **+0.55** | +0.20 | +0.25 | **+0.63** |
+| rolling 18m | −0.32 | +0.09 | +0.28 | +0.14 | +0.63 |
+| rolling 12m | −0.73 | +0.53 | +0.37 | +0.20 | +0.63 |
 
-**The spread across four reasonable rules is 0.62 Sharpe — larger than most effects in this notebook.**
-The top of the grid is flat (top-5 cells within ~0.1 Sharpe), so argmax re-selection is mostly amplifying
-noise.
+R1 = n on gross argmax then h on net (*the rule we actually used*); R2 = net argmax over 45 cells;
+R3 = net argmax on a 3×3-smoothed grid; R4 = n by mean net across h, then h on net.
 
-**But n=15 itself is robust.** Rank of the best n=15 cell out of 45, per block: **1–2 on gross in every
-single block**, 4–9 on net. The lookback is well-supported; what fails is any automatic rule that tries to
-rediscover it:
+**The frozen spec — which fits nothing — beats all twelve fitted cells.** Every rule is paying an
+estimation cost for the privilege of choosing, on a grid too flat to choose well. (The frozen row being
+identical across schemes is an intentional invariant: it fits nothing, so if it ever varied, the harness
+would be leaking the evaluation span into the training window.)
 
-- **R1 picks n=3** because gross ignores turnover, so the h=1 column — where trading is free — dominates
-  the grid, and n=3/h=1 edges out n=15/h=1 by a hair. Then h is chosen on net and the damage is done.
-- **R2 picks n=90**, which is *worse gross everywhere* (best 0.64 vs 0.90) but carries ~2.5× lower
-  turnover, so a 20 bps penalty flips the ranking. Pure-net argmax is a turnover minimizer wearing a
-  signal-selector costume.
+**n=15 is defensible, not demonstrated-stable.** Rank of the best n=15 cell out of 45:
 
-**Conclusion: this is an argument for freezing parameters, not for re-selecting them.** Same destination
-the mentor reached about adaptive layers, by a different route. The frozen n=15/h=5 line scores 0.63 over
-the same span but is **not comparable** — its parameters were chosen on a window containing those 732 days.
+| scheme | gross rank across the nine blocks |
+|---|---|
+| anchored | 2, 2, 1, 1, 1, 2, 2, 2, 2 |
+| rolling 18m | 2, 2, 1, 1, **7, 8, 5, 15**, 4 |
+
+> **Method lesson — an expanding window manufactures apparent stability.** Anchored fits at *t* and
+> *t+1Q* share almost all their training data; by the last block they overlap in ~95% of days. Agreement
+> between them is close to mechanical. A flat rank line is not evidence of robustness — it is evidence the
+> two windows are nearly the same window. Rolling fits overlap far less, and under them n=15 wanders to
+> rank 15 of 45. The earlier "rank 1–2 in every block, the lookback is robust" claim was reading an
+> artifact of the window scheme.
+
+**Span sensitivity.** The same unchanged frozen spec: **0.46** over the full train window, **0.63** over
+2023-07→2025-07, **0.53** over 2024-07→2025-07. With ~2 years of daily data the standard error on a
+Sharpe is roughly 0.6–0.8, so none of these should be read to two decimal places.
+
+**Conclusion: freeze the parameters.** Same destination the mentor reached about adaptive layers, by a
+different route — and now with the estimation cost of *not* freezing measured directly.
 
 ### 13.5 Protocol correction
 
