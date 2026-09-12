@@ -32,8 +32,8 @@ This file is the summary; the notebook is the evidence.
 | 11a | — LTC/BCH specifically | null test + cost + lag decay | **lead, unproven** | passes null, ~10 bps cost, SR 1.23 — but n≈24 trades, SE≈0.7, selected from many |
 | 12 | Hourly pair reversion | lag-decay test + cost/illiquidity corr | **dead** | bid-ask bounce: 1-hour execution delay erases 77–114% of gross SR |
 | **13** | **Cross-sectional momentum** (rank trailing return → demean → normalize), 9 liquid coins | net-of-cost Sharpe, robustness slices, walk-forward | **LIVE — the project's result** | gross 0.90 → **net 0.46** at 20 bps; costs moved h from 2 to 5 |
-| 13a | — volume as a *sizing* tilt (size down on relative volume, λ<0) | **matched-turnover** frontier vs random control | **dead** | +20% gross was bought with +45% turnover; +0.26σ where 2σ was required |
-| 13b | — re-selecting (n, h) quarterly | stitched walk-forward OOS | **no better than static** | 0.55 OOS; selection shortfall 0.27 Sharpe |
+| 13a | — volume as a *sizing* tilt (size down on relative volume, λ<0) | **matched-turnover** frontier + λ inside the walk-forward | **dead, twice** | +20% gross was bought with +45% turnover; chosen 8/8 blocks OOS and costs 0.10 Sharpe |
+| 13b | — re-selecting (n, h) quarterly | walk-forward under 4 selection rules | **freeze instead** | rules span −0.07 to +0.55; n=15 is rank 1–2 of 45 every block but no argmax finds it |
 
 > **Momentum figures caveat:** strategy 10's cells were never committed and were later rebuilt from
 > spec in `research_failed.ipynb`. The rebuild reproduces the key results closely (buy-hold −0.18,
@@ -269,6 +269,30 @@ control band.
 > matched on **concentration**. But concentration is not what the tilt costs. Turnover is. Hold the right
 > quantity fixed and the edge disappears. Choosing the control variable *is* choosing the hypothesis.
 
+**The full (λ × h) surface says the same thing four ways.** Swept over λ ∈ [−3, +2] and h ∈ [1, 10]:
+
+- **gross Sharpe** is smooth and monotone toward λ<0 and large h, peaking at 0.94 (λ=−1.5, h=10) — which
+  is exactly what a real effect looks like, and why this was persuasive;
+- **turnover is symmetric in |λ|** — at h=1, λ=−1.0 gives 0.809 and λ=+1.0 gives 0.778. Churn tracks the
+  *size* of the tilt, not its direction, because it comes from the z-score **moving**;
+- **net Sharpe** is (gross − turnover cost), and the gradient cancels almost exactly: best tilt 0.49
+  versus 0.44 for no tilt at all;
+- **the matched-turnover edge** has no structure left, and its maximum sits at **λ = +1.5** — the
+  *opposite* sign to the hypothesis. An effect that peaks at the wrong sign is not an effect.
+
+**Out-of-sample confirmation.** Put λ into the walk-forward selection set and let the procedure choose it
+quarterly on prior data only:
+
+| | OOS net SR | max DD |
+|---|---|---|
+| λ forced to 0 | **+0.641** | −30.6% |
+| λ free to be chosen | **+0.538** | −32.4% |
+
+The free rule picks a tilt in **8 of 8 blocks** — it always looks best on the data available at the time —
+and allowing it costs **0.10 Sharpe out of sample**. In-sample attractive, out-of-sample costly: the
+signature of fitting noise, not of a weak-but-real effect. Two independent tests now agree, and the
+turnover mechanism explains both.
+
 ### 13.3 Robustness: the two arbitrary choices are not load-bearing
 
 Same frozen spec, three slices, nothing re-optimized:
@@ -291,20 +315,40 @@ Same frozen spec, three slices, nothing re-optimized:
   momentum. It is weaker for a dollar-neutral book that ranks *within* survivors than for a long-only
   one, but it is not zero. Stated, not solved.
 
-### 13.4 Walk-forward: the process transfers, re-selection adds nothing
+### 13.4 Walk-forward: the selection *rule* is the variable
 
-Expanding window, quarterly refits, 18-month minimum train, selection on **net** Sharpe, truncated at
-2025-07-01 so it never touches the validation window. Eight refits, 732 OOS days.
+Expanding window, quarterly refits, 18-month minimum train, truncated at 2025-07-01. Eight refits,
+732 OOS days.
 
-- **Stitched OOS Sharpe 0.55** — every block earned with parameters fit only on prior data. That is above
-  the 0.46 the frozen spec scores in-sample, so the *procedure* transfers.
-- The frozen line scores 0.63 over the same span but **is not a fair comparator** — n=15, h=5 was chosen
-  on a TRAIN window containing those 24 months. In-sample upper reference only.
-- **Selection is stable but uninformative:** it picks n=90 in all eight blocks — the low-turnover corner
-  the cost penalty guarantees. Stability here is a property of the cost function, not evidence about the
-  signal.
-- **Selection shortfall 0.27**: mean train Sharpe of the chosen config 0.67 → mean realized next-quarter
-  Sharpe 0.40. The overfitting tax, measured rather than assumed.
+> **Correction.** The first version of this section reported a single number — 0.55 — and concluded "the
+> process transfers." That was one of several defensible selection rules, and it happened to be the best.
+> A walk-forward does not test *a strategy*; it tests *a selection rule*, and the rule must be named
+> before the number means anything.
+
+| rule | OOS net SR | what it picks |
+|---|---|---|
+| **R1** n on gross argmax, then h on net — *the rule we actually used* | **−0.07** | n=3 in 5 of 8 blocks |
+| **R2** net argmax over all 45 cells | **+0.55** | n=90 in 8 of 8 |
+| **R3** net argmax on a 3×3-smoothed grid | **+0.20** | n=20 → n=90 |
+| **R4** n by mean net across h, then h on net | **+0.25** | n=30 → n=90 |
+
+**The spread across four reasonable rules is 0.62 Sharpe — larger than most effects in this notebook.**
+The top of the grid is flat (top-5 cells within ~0.1 Sharpe), so argmax re-selection is mostly amplifying
+noise.
+
+**But n=15 itself is robust.** Rank of the best n=15 cell out of 45, per block: **1–2 on gross in every
+single block**, 4–9 on net. The lookback is well-supported; what fails is any automatic rule that tries to
+rediscover it:
+
+- **R1 picks n=3** because gross ignores turnover, so the h=1 column — where trading is free — dominates
+  the grid, and n=3/h=1 edges out n=15/h=1 by a hair. Then h is chosen on net and the damage is done.
+- **R2 picks n=90**, which is *worse gross everywhere* (best 0.64 vs 0.90) but carries ~2.5× lower
+  turnover, so a 20 bps penalty flips the ranking. Pure-net argmax is a turnover minimizer wearing a
+  signal-selector costume.
+
+**Conclusion: this is an argument for freezing parameters, not for re-selecting them.** Same destination
+the mentor reached about adaptive layers, by a different route. The frozen n=15/h=5 line scores 0.63 over
+the same span but is **not comparable** — its parameters were chosen on a window containing those 732 days.
 
 ### 13.5 Protocol correction
 
