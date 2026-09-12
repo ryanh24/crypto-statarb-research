@@ -31,6 +31,9 @@ This file is the summary; the notebook is the evidence.
 | 11 | Correlation / pairs mean-reversion (daily, BTC-residual) | λ gate vs **simulated null** | **dead** | rolling de-meaning manufactures the reversion; a random walk scores t≈−4.2 |
 | 11a | — LTC/BCH specifically | null test + cost + lag decay | **lead, unproven** | passes null, ~10 bps cost, SR 1.23 — but n≈24 trades, SE≈0.7, selected from many |
 | 12 | Hourly pair reversion | lag-decay test + cost/illiquidity corr | **dead** | bid-ask bounce: 1-hour execution delay erases 77–114% of gross SR |
+| **13** | **Cross-sectional momentum** (rank trailing return → demean → normalize), 9 liquid coins | net-of-cost Sharpe, robustness slices, walk-forward | **LIVE — the project's result** | gross 0.90 → **net 0.46** at 20 bps; costs moved h from 2 to 5 |
+| 13a | — volume as a *sizing* tilt (size down on relative volume, λ<0) | **matched-turnover** frontier vs random control | **dead** | +20% gross was bought with +45% turnover; +0.26σ where 2σ was required |
+| 13b | — re-selecting (n, h) quarterly | stitched walk-forward OOS | **no better than static** | 0.55 OOS; selection shortfall 0.27 Sharpe |
 
 > **Momentum figures caveat:** strategy 10's cells were never committed and were later rebuilt from
 > spec in `research_failed.ipynb`. The rebuild reproduces the key results closely (buy-hold −0.18,
@@ -211,3 +214,109 @@ Full code and output: [`research_failed.ipynb`](../research_failed.ipynb), secti
   degrades gracefully as you delay execution; an artifact falls off a cliff in one bar.
 - **Does not contaminate the daily work:** daily residual lag-1 autocorrelations are ≈ −0.03 vs ≈ −0.20
   hourly, because bounce is a fixed size while daily vol is ~5× hourly vol.
+
+---
+
+## 13. Cross-sectional momentum — the one that lived
+
+**The strategy.** Rank the nine liquid coins (real spread < 10 bps) by trailing 15-day return, demean the
+ranks so the book is dollar-neutral, normalize to gross 1, hold 5 days via overlapping tranches. Long the
+relative winners, short the relative losers. No volume layer, no adaptive parameters.
+
+| | TRAIN, 2022-07 → 2025-07 |
+|---|---|
+| gross Sharpe | 0.85 |
+| **net Sharpe @ 20 bps** | **0.46** |
+| turnover | 0.151 / day |
+| break-even cost | **43 bps** |
+| annual return (net) | 8.8% |
+| annual vol | 19.2% |
+| max drawdown | −23.1% |
+| alpha vs BTC (net) | 9.5%/yr, **t = 1.03** |
+| beta / corr vs BTC | −0.015 / −0.031 |
+
+The alpha is positive and **not statistically significant** net of costs. That is the honest headline;
+the gross 0.90 is not.
+
+### 13.1 Costs selected the holding period
+
+Turnover falls roughly like 1/h while gross Sharpe is nearly flat across h = 2…10, and that asymmetry is
+the whole argument. Choosing h=2 over h=5 buys +2.0%/yr of gross and pays +5.1%/yr of cost — a net loss
+of 3.1%/yr. h=1 is the cautionary case: **gross 0.80, net −0.10**, an edge that is entirely a rebate to
+the exchange.
+
+Only *h* was chosen with costs in view; *n* stayed at the value picked on gross. The net argmax over all
+45 grid cells is n=90, h=10 — deliberately **not taken**, because a turnover penalty is monotone, so the
+net optimum always drifts toward longer lookbacks and longer holds. That corner is partly mechanical, not
+evidence of a better signal.
+
+### 13.2 The volume tilt died on the *right* test
+
+Sizing down on relative volume (`conviction × exp(λ·volZ)`, λ < 0, through leg-normalization) raised gross
+Sharpe from ~0.83 to ~1.00 at h=5. It also raised turnover from 0.151 to 0.219/day.
+
+The naive net comparison says it loses; that comparison is unfair, because it pits books at different
+turnover. The correct test asks whether the tilt beats the baseline **at matched turnover** — and the
+baseline can buy that same turnover for free, just by shortening h.
+
+It cannot. At the pre-registered λ = −1.0, h = 5: tilt nets +0.236, baseline at the same turnover nets
++0.309, edge **−0.073**, against a random-control band of −0.117 ± 0.171 → **+0.26 control-σ** where the
+rule required 2σ. The best matched-turnover edge anywhere on the 18-config grid is +0.041, inside the
+control band.
+
+> **Method lesson — the control must be matched on what the intervention *spends*.** An earlier version of
+> this test showed the tilt beating a random control by ~2σ, and that result was not fraudulent; it was
+> matched on **concentration**. But concentration is not what the tilt costs. Turnover is. Hold the right
+> quantity fixed and the edge disappears. Choosing the control variable *is* choosing the hypothesis.
+
+### 13.3 Robustness: the two arbitrary choices are not load-bearing
+
+Same frozen spec, three slices, nothing re-optimized:
+
+| slice | net SR | turnover | beta |
+|---|---|---|---|
+| headline — spread < 10 bps, from 2022-07 | 0.460 | 0.151 | −0.015 |
+| **2022-H1 put back in** (from 2022-01) | 0.402 | 0.148 | −0.029 |
+| **point-in-time top-9 by trailing $ volume** | 0.474 | 0.155 | +0.005 |
+
+- **2022-H1.** The exclusion was justified by BTC's crash — a bad reason for a book that hedges BTC
+  direction out. Putting it back costs 0.06 Sharpe and **does not change the parameter selection**
+  (gross argmax is n=15, h=2 either way). The cut is not load-bearing, which is the useful outcome.
+- **Universe look-ahead.** The nine coins were chosen on spreads measured in **2026**. A genuinely
+  point-in-time universe — top 9 by trailing 90-day median dollar volume, re-formed daily, overlapping
+  the spread set only 6.88 of 9 on average and containing APE/SHIB/VET in 2022 and LINK/XLM by 2025 —
+  scores **0.474**, slightly *better*. The result does not depend on the look-ahead.
+- **Survivorship remains, and is not fixable here.** All 60 coins have a first-valid date in 2022, so the
+  panel is the *current* Binance.US listing set: anything delisted 2022–2026 is absent. The bias favours
+  momentum. It is weaker for a dollar-neutral book that ranks *within* survivors than for a long-only
+  one, but it is not zero. Stated, not solved.
+
+### 13.4 Walk-forward: the process transfers, re-selection adds nothing
+
+Expanding window, quarterly refits, 18-month minimum train, selection on **net** Sharpe, truncated at
+2025-07-01 so it never touches the validation window. Eight refits, 732 OOS days.
+
+- **Stitched OOS Sharpe 0.55** — every block earned with parameters fit only on prior data. That is above
+  the 0.46 the frozen spec scores in-sample, so the *procedure* transfers.
+- The frozen line scores 0.63 over the same span but **is not a fair comparator** — n=15, h=5 was chosen
+  on a TRAIN window containing those 24 months. In-sample upper reference only.
+- **Selection is stable but uninformative:** it picks n=90 in all eight blocks — the low-turnover corner
+  the cost penalty guarantees. Stability here is a property of the cost function, not evidence about the
+  signal.
+- **Selection shortfall 0.27**: mean train Sharpe of the chosen config 0.67 → mean realized next-quarter
+  Sharpe 0.40. The overfitting tax, measured rather than assumed.
+
+### 13.5 Protocol correction
+
+The 2025-07 → 2026-08 window is now called a **validation set**, not a sealed holdout. Earlier pairs and
+hourly work ran on the full sample, and the previous 80/20 boundary sat at 2025-09-22, inside it. That
+history cannot be un-run. Walk-forward is the stronger out-of-sample evidence; the single split is one
+more cut, not the verdict. `test_only()` remains uncalled.
+
+### 13.6 A convention mismatch worth knowing about
+
+The volume cells (`actD1`, `actD3`, `actE1`) lag the signal one day more than the momentum and cost
+sections — `.rolling(n).sum().shift(1)` plus the `w.shift(1)` in the P&L, versus a single lag in
+`xs_pnl`. Harmless and conservative, but it makes their Sharpes ~0.02 lower and not directly comparable
+(h=5 gross: 0.835 vs 0.855). The frontier test rebuilds both arms on the single-lag convention.
+
