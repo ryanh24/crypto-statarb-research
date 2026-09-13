@@ -31,9 +31,9 @@ This file is the summary; the notebook is the evidence.
 | 11 | Correlation / pairs mean-reversion (daily, BTC-residual) | λ gate vs **simulated null** | **dead** | rolling de-meaning manufactures the reversion; a random walk scores t≈−4.2 |
 | 11a | — LTC/BCH specifically | null test + cost + lag decay | **lead, unproven** | passes null, ~10 bps cost, SR 1.23 — but n≈24 trades, SE≈0.7, selected from many |
 | 12 | Hourly pair reversion | lag-decay test + cost/illiquidity corr | **dead** | bid-ask bounce: 1-hour execution delay erases 77–114% of gross SR |
-| **13** | **Cross-sectional momentum** (rank trailing return → demean → normalize), 9 liquid coins | net-of-cost Sharpe, robustness slices, rolling walk-forward on a point-in-time universe | **in-sample only — no OOS edge** | net 0.46 on TRAIN; point-in-time walk-forward 0.12 full span, −0.37 after 2025-07 |
+| **13** | **Cross-sectional momentum** (rank trailing return → demean → normalize), 9 liquid coins | net-of-cost Sharpe, robustness slices, rolling walk-forward on point-in-time universes | **in-sample edge; OOS = one trade** | net 0.46 on TRAIN; 30-day real-time screen 0.34 OOS (SE 0.43), ≈0 without the ZEC run |
 | 13a | — volume as a *sizing* tilt (size down on relative volume, λ<0) | four (λ×h) heatmaps; 139-window rolling walk-forward | **dead** | every tilt loses to λ=0 at h=5 on TRAIN; down-tilt worst over the walk-forward (0.13 vs 0.58) |
-| 13b | — universe look-ahead after 2025-07 | ZEC attribution; same walk-forward on a point-in-time universe | **load-bearing** | look-ahead book 0.58 vs point-in-time 0.12; burst removed, both ≈ 0.01–0.02 |
+| 13b | — universe look-ahead after 2025-07 | ZEC liquidity history; 7/14/30/90-day screen sweep; post-jump window | **about half load-bearing** | ZEC became liquid early in its run; 30-day screen keeps +30% of the +82% burst |
 
 > **Momentum figures caveat:** strategy 10's cells were never committed and were later rebuilt from
 > spec in `research_failed.ipynb`. The rebuild reproduces the key results closely (buy-hold −0.18,
@@ -322,30 +322,47 @@ weight — ZEC's volume was high, so positive tilts leaned into it.
 > these mean the evidence for XS momentum beyond TRAIN is one look-ahead-dependent trade. TRAIN (≈0.46) is not
 > contradicted, and not confirmed.
 
-### 13.4b The point-in-time walk-forward — the edge was the look-ahead
+### 13.4b Point-in-time universes — was the ZEC profit real?
 
-Same 139 windows, same n = 15 / h = 5 / λ = 0 / 20 bps, one builder for both books (it reproduces the walk-forward
-above to 1e-17, so the gap is membership alone). Point-in-time universe = top-9 by trailing 90-day median dollar
-volume, lagged one day.
+> **Correction.** An earlier version of this section was titled "the edge was the look-ahead". That came from a
+> slow 90-day median liquidity screen, which admitted ZEC only after its run ended. ZEC was illiquid before the
+> run but became liquid within days of it starting, so a responsive real-time screen would have held it. The
+> claim is withdrawn.
 
-| walk-forward, 2023-01 → 2026-08 | spread < 10 bps (look-ahead) | point-in-time top-9 |
-|---|---|---|
-| net Sharpe, full span | 0.58 | **0.12** (SE ≈ 0.43) |
-| net Sharpe after 2025-07-01 | 1.07 | **−0.37** (SE ≈ 0.77) |
-| ZEC burst, 45 days | +82% | +9% (held ZEC on 0 days) |
-| full span / after split, burst removed | 0.01 / −0.77 | 0.02 / −0.77 |
-| 12-month windows positive | 92% | 56% |
+**ZEC's liquidity.** 2022 through Q3 2025: ~$1–7k/day on Binance.US, 15–100× below the 9th-ranked coin, median
+rank 31–52 of 60, no trade in up to 60% of hours. Its daily volume then went $8k (09-26) → $221k (10-02) →
+$846k (10-11) → $3M (11-07), crossing the top-9 cutoff in early October.
 
-The universes share 7.2 of 9 coins on average; remove the burst and they score the same. **The whole
-out-of-sample difference is one ZEC trade, held because of a spread measured after the fact. On a universe a
-trader could have formed at the time, XS momentum shows no demonstrated out-of-sample edge.** TRAIN still stands as
-an in-sample result (0.46 spread-9; 0.47 point-in-time through 2025-07).
+**Screen-speed sweep**, same 139-window walk-forward (n = 15, h = 5, λ = 0, 20 bps). The 30-day screen was fixed
+as the headline before any of these Sharpes were computed. One builder for every book; the 90-day screen
+reproduces the earlier point-in-time book exactly.
+
+| | look-ahead | 7-day | 14-day | **30-day** | 90-day |
+|---|---|---|---|---|---|
+| ZEC first eligible | always | 10-05 | 10-10 | **10-16** | 11-15 |
+| net Sharpe, full span | 0.58 | 0.35 | 0.31 | **0.34** | 0.12 |
+| net Sharpe after 2025-07-01 | 1.07 | 0.59 | 0.34 | **0.38** | −0.37 |
+| burst return (45 days) | +82% | +42% | +30% | **+30%** | +9% |
+| full span, burst removed | 0.01 | −0.01 | 0.04 | **0.04** | 0.02 |
+| turnover | 0.150 | 0.178 | 0.168 | **0.162** | 0.155 |
+
+**Post-liquidity-jump window** (2025-10-05, when a 7-day screen first admits ZEC, → 2026-08-28; 328 days, SE ≈ 0.88):
+30-day screen 0.64 (look-ahead 0.78, 90-day −0.43). Every book lost money after the run ended (aftermath Sharpe
+−0.48 to −0.86).
+
+**What this means.**
+- About half of the look-ahead book's out-of-sample result survives a real-time universe. The part that was not
+  real is the ~12% ZEC position held through September while ZEC traded ~$2k/day, before any screen admitted it.
+- The real part is still **one trade**. With the burst removed, every universe scores −0.01 to +0.04; after the run,
+  every book lost money.
+- 0.34 (SE ≈ 0.43) is within one standard error of zero. Out of sample, XS momentum caught one strong trend in a coin
+  that became liquid as it trended, which is what momentum should do, and earned roughly nothing otherwise. That is a
+  capturable profit, not evidence of a persistent edge.
 
 **Is dollar volume a fair proxy?** Against the real Aug–Sep 2026 spreads, trailing $ volume has rank correlation
-−0.90 (fraction of hours traded −0.91, Amihud +0.84), and today's $-volume top-9 matches the spread set on 8 of 9.
-Validated in 2026 only: no historical spreads exist in the data. Limitations: the 60-coin panel is a survivor set
-(chosen by listing on Binance.US and Coinbase at download time), and Binance.US volume fell from ~$62M/day to
-~$8M/day after Q2 2023.
+−0.90 and today's top-9 matches the spread set on 8 of 9 — validated in 2026 only. Limits: no historical spreads;
+the 60-coin panel is a survivor set; Binance.US volume fell from ~$62M/day to ~$8M/day after Q2 2023; ZEC's October
+2025 spread and capacity ($50k–$1M/day) are unknown.
 
 ### 13.5 Protocol: the split is retired
 
