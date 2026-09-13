@@ -335,7 +335,7 @@ $846k (10-11) → $3M (11-07), crossing the top-9 cutoff in early October.
 
 **Screen-speed sweep**, same 139-window walk-forward (n = 15, h = 5, λ = 0, 20 bps). The 30-day screen was fixed
 as the headline before any of these Sharpes were computed. One builder for every book; the 90-day screen
-reproduces the earlier point-in-time book exactly.
+reproduces the walk-forward's own book exactly when given the spread-9 mask, so every difference below is membership.
 
 | | look-ahead | 7-day | 14-day | **30-day** | 90-day |
 |---|---|---|---|---|---|
