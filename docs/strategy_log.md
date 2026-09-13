@@ -31,9 +31,9 @@ This file is the summary; the notebook is the evidence.
 | 11 | Correlation / pairs mean-reversion (daily, BTC-residual) | λ gate vs **simulated null** | **dead** | rolling de-meaning manufactures the reversion; a random walk scores t≈−4.2 |
 | 11a | — LTC/BCH specifically | null test + cost + lag decay | **lead, unproven** | passes null, ~10 bps cost, SR 1.23 — but n≈24 trades, SE≈0.7, selected from many |
 | 12 | Hourly pair reversion | lag-decay test + cost/illiquidity corr | **dead** | bid-ask bounce: 1-hour execution delay erases 77–114% of gross SR |
-| **13** | **Cross-sectional momentum** (rank trailing return → demean → normalize), 9 liquid coins | net-of-cost Sharpe, robustness slices, rolling walk-forward | **LIVE on TRAIN, unconfirmed OOS** | net 0.46 on TRAIN; post-2025-07 gain is one ZEC run that a point-in-time universe would not have held |
+| **13** | **Cross-sectional momentum** (rank trailing return → demean → normalize), 9 liquid coins | net-of-cost Sharpe, robustness slices, rolling walk-forward on a point-in-time universe | **in-sample only — no OOS edge** | net 0.46 on TRAIN; point-in-time walk-forward 0.12 full span, −0.37 after 2025-07 |
 | 13a | — volume as a *sizing* tilt (size down on relative volume, λ<0) | four (λ×h) heatmaps; 139-window rolling walk-forward | **dead** | every tilt loses to λ=0 at h=5 on TRAIN; down-tilt worst over the walk-forward (0.13 vs 0.58) |
-| 13b | — universe look-ahead after 2025-07 | ZEC attribution + point-in-time membership | **load-bearing** | ZEC in the PIT top-9 on 0 of 45 burst days; burst removed, λ=0 full span 0.01 |
+| 13b | — universe look-ahead after 2025-07 | ZEC attribution; same walk-forward on a point-in-time universe | **load-bearing** | look-ahead book 0.58 vs point-in-time 0.12; burst removed, both ≈ 0.01–0.02 |
 
 > **Momentum figures caveat:** strategy 10's cells were never committed and were later rebuilt from
 > spec in `research_failed.ipynb`. The rebuild reproduces the key results closely (buy-hold −0.18,
@@ -322,7 +322,30 @@ weight — ZEC's volume was high, so positive tilts leaned into it.
 > these mean the evidence for XS momentum beyond TRAIN is one look-ahead-dependent trade. TRAIN (≈0.46) is not
 > contradicted, and not confirmed.
 
-**Open:** re-run the walk-forward on the point-in-time universe, where the ZEC episode cannot enter.
+### 13.4b The point-in-time walk-forward — the edge was the look-ahead
+
+Same 139 windows, same n = 15 / h = 5 / λ = 0 / 20 bps, one builder for both books (it reproduces the walk-forward
+above to 1e-17, so the gap is membership alone). Point-in-time universe = top-9 by trailing 90-day median dollar
+volume, lagged one day.
+
+| walk-forward, 2023-01 → 2026-08 | spread < 10 bps (look-ahead) | point-in-time top-9 |
+|---|---|---|
+| net Sharpe, full span | 0.58 | **0.12** (SE ≈ 0.43) |
+| net Sharpe after 2025-07-01 | 1.07 | **−0.37** (SE ≈ 0.77) |
+| ZEC burst, 45 days | +82% | +9% (held ZEC on 0 days) |
+| full span / after split, burst removed | 0.01 / −0.77 | 0.02 / −0.77 |
+| 12-month windows positive | 92% | 56% |
+
+The universes share 7.2 of 9 coins on average; remove the burst and they score the same. **The whole
+out-of-sample difference is one ZEC trade, held because of a spread measured after the fact. On a universe a
+trader could have formed at the time, XS momentum shows no demonstrated out-of-sample edge.** TRAIN still stands as
+an in-sample result (0.46 spread-9; 0.47 point-in-time through 2025-07).
+
+**Is dollar volume a fair proxy?** Against the real Aug–Sep 2026 spreads, trailing $ volume has rank correlation
+−0.90 (fraction of hours traded −0.91, Amihud +0.84), and today's $-volume top-9 matches the spread set on 8 of 9.
+Validated in 2026 only: no historical spreads exist in the data. Limitations: the 60-coin panel is a survivor set
+(chosen by listing on Binance.US and Coinbase at download time), and Binance.US volume fell from ~$62M/day to
+~$8M/day after Q2 2023.
 
 ### 13.5 Protocol: the split is retired
 
