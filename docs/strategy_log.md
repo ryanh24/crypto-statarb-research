@@ -31,9 +31,9 @@ This file is the summary; the notebook is the evidence.
 | 11 | Correlation / pairs mean-reversion (daily, BTC-residual) | λ gate vs **simulated null** | **dead** | rolling de-meaning manufactures the reversion; a random walk scores t≈−4.2 |
 | 11a | — LTC/BCH specifically | null test + cost + lag decay | **lead, unproven** | passes null, ~10 bps cost, SR 1.23 — but n≈24 trades, SE≈0.7, selected from many |
 | 12 | Hourly pair reversion | lag-decay test + cost/illiquidity corr | **dead** | bid-ask bounce: 1-hour execution delay erases 77–114% of gross SR |
-| **13** | **Cross-sectional momentum** (rank trailing return → demean → normalize), 9 liquid coins | net-of-cost Sharpe, robustness slices, walk-forward | **LIVE — the project's result** | gross 0.90 → **net 0.46** at 20 bps; costs moved h from 2 to 5 |
-| 13a | — volume as a *sizing* tilt (size down on relative volume, λ<0) | **matched-turnover** frontier; λ isolated inside the walk-forward | **dead on TRAIN, null OOS** | +20% gross was bought with +45% turnover; best fixed λ is +0.014 OOS against SE 0.59 |
-| 13b | — re-selecting (n, h) quarterly | walk-forward, 3 window schemes × 4 rules | **freeze instead** | frozen spec beats all 12 fitted cells; anchored windows manufacture apparent stability |
+| **13** | **Cross-sectional momentum** (rank trailing return → demean → normalize), 9 liquid coins | net-of-cost Sharpe, robustness slices, rolling walk-forward | **LIVE on TRAIN, unconfirmed OOS** | net 0.46 on TRAIN; post-2025-07 gain is one ZEC run that a point-in-time universe would not have held |
+| 13a | — volume as a *sizing* tilt (size down on relative volume, λ<0) | four (λ×h) heatmaps; 139-window rolling walk-forward | **dead** | every tilt loses to λ=0 at h=5 on TRAIN; down-tilt worst over the walk-forward (0.13 vs 0.58) |
+| 13b | — universe look-ahead after 2025-07 | ZEC attribution + point-in-time membership | **load-bearing** | ZEC in the PIT top-9 on 0 of 45 burst days; burst removed, λ=0 full span 0.01 |
 
 > **Momentum figures caveat:** strategy 10's cells were never committed and were later rebuilt from
 > spec in `research_failed.ipynb`. The rebuild reproduces the key results closely (buy-hold −0.18,
@@ -250,63 +250,30 @@ Only *h* was chosen with costs in view; *n* stayed at the value picked on gross.
 net optimum always drifts toward longer lookbacks and longer holds. That corner is partly mechanical, not
 evidence of a better signal.
 
-### 13.2 The volume tilt died on the *right* test
+### 13.2 The volume tilt: four heatmaps at n = 15
 
-Sizing down on relative volume (`conviction × exp(λ·volZ)`, λ < 0, through leg-normalization) raised gross
-Sharpe from ~0.83 to ~1.00 at h=5. It also raised turnover from 0.151 to 0.219/day.
+Hypothesis from Tests D/E: size **down** on relative volume, `conviction × exp(λ·volZ)` with λ < 0, through
+`leg_norm` so the book stays dollar-neutral. Swept over λ ∈ [−3, +3] × h ∈ {1, 2, 3, 5, 7, 10} on TRAIN, net of
+20 bps, lookback fixed at 15. λ = 0 is the conviction-sized book (net 0.44 at h=5), so every row shares one
+construction.
 
-The naive net comparison says it loses; that comparison is unfair, because it pits books at different
-turnover. The correct test asks whether the tilt beats the baseline **at matched turnover** — and the
-baseline can buy that same turnover for free, just by shortening h.
-
-It cannot. At the pre-registered λ = −1.0, h = 5: tilt nets +0.236, baseline at the same turnover nets
-+0.309, edge **−0.073**, against a random-control band of −0.117 ± 0.171 → **+0.26 control-σ** where the
-rule required 2σ. The best matched-turnover edge anywhere on the 18-config grid is +0.041, inside the
-control band.
-
-> **Method lesson — the control must be matched on what the intervention *spends*.** An earlier version of
-> this test showed the tilt beating a random control by ~2σ, and that result was not fraudulent; it was
-> matched on **concentration**. But concentration is not what the tilt costs. Turnover is. Hold the right
-> quantity fixed and the edge disappears. Choosing the control variable *is* choosing the hypothesis.
-
-**The full (λ × h) surface says the same thing four ways.** Swept over λ ∈ [−3, +2] and h ∈ [1, 10]:
-
-- **gross Sharpe** is smooth and monotone toward λ<0 and large h, peaking at 0.94 (λ=−1.5, h=10) — which
-  is exactly what a real effect looks like, and why this was persuasive;
-- **turnover is symmetric in |λ|** — at h=1, λ=−1.0 gives 0.809 and λ=+1.0 gives 0.778. Churn tracks the
-  *size* of the tilt, not its direction, because it comes from the z-score **moving**;
-- **net Sharpe** is (gross − turnover cost), and the gradient cancels almost exactly: best tilt 0.49
-  versus 0.44 for no tilt at all;
-- **the matched-turnover edge** has no structure left, and its maximum sits at **λ = +1.5** — the
-  *opposite* sign to the hypothesis. An effect that peaks at the wrong sign is not an effect.
-
-**Out-of-sample: a null, not a rejection.** λ was put into the walk-forward selection set. The first
-version of this test let the procedure choose **(n, h, λ) jointly**, and that test is confounded — the
-two window schemes disagree in sign (−0.10 anchored, **+0.30** rolling 18m) because the free run lands on
-a different *lookback* as well as a different λ. It cannot separate "the tilt helped" from "the joint
-search happened to pick a better n". Discarded.
-
-Holding **(n, h) fixed at 15/5** and varying only λ over the common OOS span:
-
-| λ (fixed, no selection) | OOS net SR |
+| panel | reading |
 |---|---|
-| 0 — no tilt | 0.609 |
-| −0.5 | 0.624 |
-| −1.0 | 0.569 |
-| −1.5 | 0.479 |
+| (a) gross Sharpe | smooth, monotone toward λ < 0 and long h; peaks at 0.94 (λ = −1.5, h = 10). This is why it was persuasive |
+| (b) Sharpe lost to costs | rises with \|λ\| on **both** sides — turnover is symmetric in \|λ\| (h=1: 0.809 at λ=−1, 0.778 at λ=+1), because the churn comes from the z-score *moving* |
+| (c) net Sharpe | (a) − (b); the gross gradient mostly cancels. Best tilt 0.49 (λ=−1, h=10) vs 0.44 no tilt at h=5 |
+| (d) edge over no tilt, same h | at the frozen **h = 5 every tilt loses** (best −0.07); only a sliver at h = 10 is positive (+0.08) |
 
-The best fixed tilt beats no-tilt by **+0.014** against a standard error of **0.59** — three quarters of
-an order of magnitude inside the noise. Letting the walk-forward pick λ quarterly gives 0.000 (anchored)
-to −0.076 (rolling). Larger tilts are clearly worse.
+The walk-forward carries λ ∈ {−1, −0.5, 0, +0.5, +1}: beyond |λ| = 1 the cost panel keeps climbing. That range
+is a judgment made on TRAIN data overlapping most walk-forward windows.
 
-**This is a null result and should not be sold as an out-of-sample rejection.** The TRAIN matched-turnover
-frontier and the turnover mechanism remain the stronger evidence. Everything points the same way — no
-reason to carry the tilt, and no evidence it would help — but the OOS span is too short to reject anything
-on its own.
+> The earlier matched-turnover frontier, random-control comparison and joint (n, h, λ) walk-forward were removed
+> from the notebook in the cleanup; they remain in git history at `f513091`. Their method lesson stands — **a
+> control must be matched on what the intervention spends** — and panel (b) now carries the mechanism.
 
-### 13.3 Robustness: the two arbitrary choices are not load-bearing
+### 13.3 Robustness: not load-bearing *through 2025-07*
 
-Same frozen spec, three slices, nothing re-optimized:
+Same frozen spec, three slices, nothing re-optimized, through 2025-07-01:
 
 | slice | net SR | turnover | beta |
 |---|---|---|---|
@@ -314,74 +281,60 @@ Same frozen spec, three slices, nothing re-optimized:
 | **2022-H1 put back in** (from 2022-01) | 0.402 | 0.148 | −0.029 |
 | **point-in-time top-9 by trailing $ volume** | 0.474 | 0.155 | +0.005 |
 
-- **2022-H1.** The exclusion was justified by BTC's crash — a bad reason for a book that hedges BTC
-  direction out. Putting it back costs 0.06 Sharpe and **does not change the parameter selection**
-  (gross argmax is n=15, h=2 either way). The cut is not load-bearing, which is the useful outcome.
-- **Universe look-ahead.** The nine coins were chosen on spreads measured in **2026**. A genuinely
-  point-in-time universe — top 9 by trailing 90-day median dollar volume, re-formed daily, overlapping
-  the spread set only 6.88 of 9 on average and containing APE/SHIB/VET in 2022 and LINK/XLM by 2025 —
-  scores **0.474**, slightly *better*. The result does not depend on the look-ahead.
-- **Survivorship remains, and is not fixable here.** All 60 coins have a first-valid date in 2022, so the
-  panel is the *current* Binance.US listing set: anything delisted 2022–2026 is absent. The bias favours
-  momentum. It is weaker for a dollar-neutral book that ranks *within* survivors than for a long-only
-  one, but it is not zero. Stated, not solved.
+Differences of −0.06 and +0.01 against a ~0.48 standard error: neither choice moves the TRAIN result.
+Survivorship remains, stated not solved — all 60 coins first list in 2022, so the panel is the current listing
+set.
 
-### 13.4 Walk-forward: the selection rule *and* the window scheme are both variables
+> **This conclusion does not extend past 2025-07.** See §13.4: after the split, the universe look-ahead
+> becomes the whole result.
 
-Quarterly test blocks tiling exactly, **OOS span fixed at 2023-07 → 2025-07 for every scheme** so only the
-training window varies, truncated before validation. Nine refits, 732 days.
+### 13.4 Rolling walk-forward — and one coin
 
-> **Correction, twice over.** The first version reported a single number (0.55) and concluded "the process
-> transfers" — that was one selection rule of several, and the best one. The second version fixed the rule
-> question but used only an **anchored** (expanding) window without saying so. Both the rule and the
-> window scheme are free choices, and both matter.
+The old split is **retired**. Fixed n = 15, h = 5, 20 bps; five tilts; **139 windows of 12 months, stepped 7
+days, from 2023-01-01** (last 2025-08-24 → 2026-08-24). Nothing is re-fitted, so this is a rolling stability test
+of fixed strategies. Stated biases: n and h are in-sample before 2025-07; the λ range came from TRAIN; windows
+overlap 51/52 weeks, so ~3–4 independent windows, not 139.
 
-| scheme | R1 | R2 | R3 | R4 | frozen |
-|---|---|---|---|---|---|
-| anchored | −0.07 | **+0.55** | +0.20 | +0.25 | **+0.63** |
-| rolling 18m | −0.32 | +0.09 | +0.28 | +0.14 | +0.63 |
-| rolling 12m | −0.73 | +0.53 | +0.37 | +0.20 | +0.63 |
+| λ | SR full span | SR after 2025-07-01 | window SR mean | % windows beat λ=0 |
+|---|---|---|---|---|
+| −1.0 | 0.13 | −0.06 | 0.53 | 33% |
+| −0.5 | 0.37 | 0.50 | 0.73 | 40% |
+| **0** | **0.58** | 1.07 | **0.86** | — |
+| +0.5 | 0.57 | 1.32 | 0.76 | 32% |
+| +1.0 | 0.53 | 1.40 | 0.66 | 31% |
 
-R1 = n on gross argmax then h on net (*the rule we actually used*); R2 = net argmax over 45 cells;
-R3 = net argmax on a 3×3-smoothed grid; R4 = n by mean net across h, then h on net.
+**No tilt wins.** Highest full-span and mean-window Sharpe; every tilt loses to it in 60–69% of windows; the
+hypothesised down-tilt is monotonically worst. Frozen spec: **n = 15, h = 5, no volume layer**.
 
-**The frozen spec — which fits nothing — beats all twelve fitted cells.** Every rule is paying an
-estimation cost for the privilege of choosing, on a grid too flat to choose well. (The frozen row being
-identical across schemes is an intentional invariant: it fits nothing, so if it ever varied, the harness
-would be leaking the evaluation span into the training window.)
+**But the post-split column is one trade.** ZEC rose ~11× (56 → 614) from 2025-09-26 to 2025-11-09; the
+untilted book made +51% on ZEC alone over those 45 days. The post-split ranking of λ is just the ranking of ZEC
+weight — ZEC's volume was high, so positive tilts leaned into it.
 
-**n=15 is defensible, not demonstrated-stable.** Rank of the best n=15 cell out of 45:
+| | SR after split | after split, burst removed | full span, burst removed |
+|---|---|---|---|
+| λ = 0 | 1.07 | **−0.77** | **0.01** |
 
-| scheme | gross rank across the nine blocks |
-|---|---|
-| anchored | 2, 2, 1, 1, 1, 2, 2, 2, 2 |
-| rolling 18m | 2, 2, 1, 1, **7, 8, 5, 15**, 4 |
+> **The finding that matters most.** ZEC is in the universe because its spread measured under 10 bps in
+> **2026** — after the run made it liquid. By trailing dollar volume it ranked ~32nd of 60 when the burst began,
+> sat in the point-in-time top-9 on **0 of 45** burst days, and entered only on **2025-11-15**, six days after the
+> run ended. So the universe look-ahead that §13.3 found harmless through 2025-07 is **the entire out-of-sample
+> gain** after it. Removing the largest stretch is a deliberate stress test, not a fair estimate — but together
+> these mean the evidence for XS momentum beyond TRAIN is one look-ahead-dependent trade. TRAIN (≈0.46) is not
+> contradicted, and not confirmed.
 
-> **Method lesson — an expanding window manufactures apparent stability.** Anchored fits at *t* and
-> *t+1Q* share almost all their training data; by the last block they overlap in ~95% of days. Agreement
-> between them is close to mechanical. A flat rank line is not evidence of robustness — it is evidence the
-> two windows are nearly the same window. Rolling fits overlap far less, and under them n=15 wanders to
-> rank 15 of 45. The earlier "rank 1–2 in every block, the lookback is robust" claim was reading an
-> artifact of the window scheme.
+**Open:** re-run the walk-forward on the point-in-time universe, where the ZEC episode cannot enter.
 
-**Span sensitivity.** The same unchanged frozen spec: **0.46** over the full train window, **0.63** over
-2023-07→2025-07, **0.53** over 2024-07→2025-07. With ~2 years of daily data the standard error on a
-Sharpe is roughly 0.6–0.8, so none of these should be read to two decimal places.
+### 13.5 Protocol: the split is retired
 
-**Conclusion: freeze the parameters.** Same destination the mentor reached about adaptive layers, by a
-different route — and now with the estimation cost of *not* freezing measured directly.
-
-### 13.5 Protocol correction
-
-The 2025-07 → 2026-08 window is now called a **validation set**, not a sealed holdout. Earlier pairs and
-hourly work ran on the full sample, and the previous 80/20 boundary sat at 2025-09-22, inside it. That
-history cannot be un-run. Walk-forward is the stronger out-of-sample evidence; the single split is one
-more cut, not the verdict. `test_only()` remains uncalled.
+The 2025-07-01 split was compromised (earlier full-sample work; an old 80/20 boundary at 2025-09-22 inside it),
+so it is no longer scored as a holdout. The rolling walk-forward replaces it and runs through 2026-08-28. The
+research protocol and cost cells in the notebook still describe a window "scored once"; they were left untouched
+by instruction, and the walk-forward section carries the supersession note. `test_only()` remains uncalled.
 
 ### 13.6 A convention mismatch worth knowing about
 
 The volume cells (`actD1`, `actD3`, `actE1`) lag the signal one day more than the momentum and cost
 sections — `.rolling(n).sum().shift(1)` plus the `w.shift(1)` in the P&L, versus a single lag in
 `xs_pnl`. Harmless and conservative, but it makes their Sharpes ~0.02 lower and not directly comparable
-(h=5 gross: 0.835 vs 0.855). The frontier test rebuilds both arms on the single-lag convention.
+(h=5 gross: 0.835 vs 0.855). The heatmap and walk-forward cells use the single-lag convention.
 
