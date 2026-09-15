@@ -2,8 +2,8 @@
 
 The prose index of every strategy we tested and rejected, the test that settled each one, and the
 lesson we carried forward. "Dead" = not significantly profitable **after realistic costs /
-out-of-sample scrutiny**. The most promising lead — long-only momentum — is **parked** (unproven
-out-of-sample), not dead.
+out-of-sample scrutiny**. The research is **closed (2026-09-15)**: the one strategy that lived, cross-sectional
+momentum (§13), is written up in [`report.md`](report.md).
 
 **Two-notebook convention:**
 - [`research.ipynb`](../research.ipynb) — live EDA and current work only. Kept uncluttered.
@@ -31,7 +31,7 @@ This file is the summary; the notebook is the evidence.
 | 11 | Correlation / pairs mean-reversion (daily, BTC-residual) | λ gate vs **simulated null** | **dead** | rolling de-meaning manufactures the reversion; a random walk scores t≈−4.2 |
 | 11a | — LTC/BCH specifically | null test + cost + lag decay | **lead, unproven** | passes null, ~10 bps cost, SR 1.23 — but n≈24 trades, SE≈0.7, selected from many |
 | 12 | Hourly pair reversion | lag-decay test + cost/illiquidity corr | **dead** | bid-ask bounce: 1-hour execution delay erases 77–114% of gross SR |
-| **13** | **Cross-sectional momentum** (rank trailing return → demean → normalize), 9 liquid coins | net-of-cost Sharpe, robustness slices, rolling walk-forward on point-in-time universes | **in-sample edge; OOS = one trade** | net 0.46 on TRAIN; 30-day real-time screen 0.34 OOS (SE 0.43), ≈0 without the ZEC run |
+| **13** | **Cross-sectional momentum** (rank trailing return → demean → normalize), 9 liquid coins | net-of-cost Sharpe, robustness slices, rolling walk-forward on point-in-time universes | **closed — one episode, not a persistent edge** | net 0.46 on TRAIN; 30-day real-time screen 0.34 over the walk-forward (SE 0.43), 0.04 without the ZEC run; full history 0.38 |
 | 13a | — volume as a *sizing* tilt (size down on relative volume, λ<0) | four (λ×h) heatmaps; 139-window rolling walk-forward | **dead** | every tilt loses to λ=0 at h=5 on TRAIN; down-tilt worst over the walk-forward (0.13 vs 0.58) |
 | 13b | — universe look-ahead after 2025-07 | ZEC liquidity history; 7/14/30/90-day screen sweep; post-jump window | **about half load-bearing** | ZEC became liquid early in its run; 30-day screen keeps +30% of the +82% burst |
 
@@ -314,6 +314,9 @@ weight — ZEC's volume was high, so positive tilts leaned into it.
 |---|---|---|---|
 | λ = 0 | 1.07 | **−0.77** | **0.01** |
 
+> **Superseded by §13.4b.** The box below was written against a 90-day screen only. Its "0 of 45 burst days" and
+> "the entire out-of-sample gain" do not hold for faster screens; kept for the record.
+>
 > **The finding that matters most.** ZEC is in the universe because its spread measured under 10 bps in
 > **2026** — after the run made it liquid. By trailing dollar volume it ranked ~32nd of 60 when the burst began,
 > sat in the point-in-time top-9 on **0 of 45** burst days, and entered only on **2025-11-15**, six days after the
@@ -368,8 +371,8 @@ the 60-coin panel is a survivor set; Binance.US volume fell from ~$62M/day to ~$
 
 The 2025-07-01 split was compromised (earlier full-sample work; an old 80/20 boundary at 2025-09-22 inside it),
 so it is no longer scored as a holdout. The rolling walk-forward replaces it and runs through 2026-08-28. The
-research protocol and cost cells in the notebook still describe a window "scored once"; they were left untouched
-by instruction, and the walk-forward section carries the supersession note. `test_only()` remains uncalled.
+research protocol's split table carries a note that the rolling walk-forward superseded it (added in `bd23337`).
+`test_only()` remains uncalled.
 
 ### 13.6 A convention mismatch worth knowing about
 
@@ -378,3 +381,19 @@ sections — `.rolling(n).sum().shift(1)` plus the `w.shift(1)` in the P&L, vers
 `xs_pnl`. Harmless and conservative, but it makes their Sharpes ~0.02 lower and not directly comparable
 (h=5 gross: 0.835 vs 0.855). The heatmap and walk-forward cells use the single-lag convention.
 
+### 13.7 Closed (2026-09-15)
+
+Mentor Round 3 called the research complete. The final section of `research.ipynb` (`fin0` / `rep0` / `fin1`)
+reports the frozen spec on two universes over five periods, and [`report.md`](report.md) is the standalone writeup.
+Headline, point-in-time 30-day screen, net of 20 bps:
+
+| | full history (2022-01-21 →) | primary (2022-07 →) | TRAIN | walk-forward (2023-01 →) | OOS (2025-07 →) |
+|---|---|---|---|---|---|
+| net Sharpe | 0.38 | 0.44 | 0.48 | **0.34** | 0.38 |
+| net Sharpe, 45-day burst removed | 0.16 | 0.19 | — | **0.04** | −0.56 |
+| alpha t vs BTC | 1.06 | 1.16 | 0.98 | 0.91 | 0.43 |
+
+- **2022-H1 is not load-bearing.** Putting it back moves the headline from 0.44 to 0.38.
+- **"≈ 0 without the burst" is specific to the walk-forward span.** Samples that include 2022-H2, which is TRAIN,
+  score 0.16–0.19. That is still within one standard error of zero.
+- **Survivorship** is stated explicitly and not corrected.
