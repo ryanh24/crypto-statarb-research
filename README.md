@@ -1,6 +1,6 @@
 # CryptoStatArb — Cross-Sectional Momentum in Crypto
 
-**WSQ course project: Statistical Arbitrage in Cryptocurrencies.** A dollar-neutral cross-sectional momentum strategy on
+**Statistical Arbitrage in Cryptocurrencies.** A dollar-neutral cross-sectional momentum strategy on
 liquid Binance.US coins, built and then stress-tested against transaction costs, a rolling walk-forward, and
 point-in-time universe selection.
 
@@ -28,7 +28,7 @@ episode; there is no evidence of a persistent edge.**
 | alpha (ann.) / t-stat vs BTC | 7.7% / 0.98 | 6.7% / 0.91 | 7.3% / 1.06 |
 | beta / correlation vs BTC | 0.00 / 0.01 | −0.02 / −0.06 | −0.03 / −0.07 |
 
-Sharpe = daily mean / std × √252, the course convention. The panel is survivors only (see the report's limitations).
+Sharpe = daily mean / std × √252, the standard convention. The panel is survivors only (see the report's limitations).
 
 ## Structure
 

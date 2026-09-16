@@ -383,7 +383,7 @@ sections — `.rolling(n).sum().shift(1)` plus the `w.shift(1)` in the P&L, vers
 
 ### 13.7 Closed (2026-09-15)
 
-Mentor Round 3 called the research complete. The final section of `research.ipynb` (`fin0` / `rep0` / `fin1`)
+A third round of external review concluded the research. The final section of `research.ipynb` (`fin0` / `rep0` / `fin1`)
 reports the frozen spec on two universes over five periods, and [`report.md`](report.md) is the standalone writeup.
 Headline, point-in-time 30-day screen, net of 20 bps:
 

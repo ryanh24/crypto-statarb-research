@@ -16,9 +16,9 @@ figures below are the publicly published standard rates.
 - **Tier 1+ pairs:** volume-based discounts on a trailing 30-day basis (see logged-in
   fee schedule to confirm exact numbers once volume is known).
 
-## Course-project cost baseline (for cross-checking)
+## Cost baseline (for cross-checking)
 
-From the ClassProject brief — a conservative all-in assumption:
+A conservative all-in assumption, used throughout:
 
 | Order type    | Commission | Assumed slippage | All-in    |
 |---------------|-----------|------------------|-----------|

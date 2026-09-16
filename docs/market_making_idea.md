@@ -35,7 +35,7 @@ The edge is being *faster than other participants at reflecting Binance onto the
 ## Feasibility (be honest)
 
 The strategy as described by pros assumes capital + colocated cloud infra (AWS near the
-exchange, fastest feeds). **A daily-bar course project cannot win a live latency race.**
+exchange, fastest feeds). **A daily-bar research project cannot win a live latency race.**
 The realistic, still-valuable *research* version:
 
 1. **Measure lead-lag** between Binance and a smaller venue (how much / what horizon does

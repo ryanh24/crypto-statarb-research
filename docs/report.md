@@ -1,6 +1,6 @@
 # Cross-Sectional Momentum in Crypto: a Stress-Tested Backtest
 
-**WSQ course project — Statistical Arbitrage in Cryptocurrencies** · Ryan · September 2026
+**Statistical Arbitrage in Cryptocurrencies** · Ryan · September 2026
 
 Evidence: [`research.ipynb`](../research.ipynb) · rejected strategies: [`research_failed.ipynb`](../research_failed.ipynb),
 indexed by [`strategy_log.md`](strategy_log.md)
@@ -48,10 +48,10 @@ from the median rank and normalized to 0.5 gross. The cost section used plain ra
 signal sized differently (TRAIN net 0.46 vs 0.44).
 
 **P&L and cost timing.** P&L on day *t* is `w_{t-1} · r_t`. The trade that set `w_{t-1}` is charged on the same
-day: `cost_t = 20 bps × Σ|w_{t-1} − w_{t-2}|`. Twenty basis points is the course's market-order assumption
+day: `cost_t = 20 bps × Σ|w_{t-1} − w_{t-2}|`. Twenty basis points is the all-in market-order assumption
 (7 bps commission + 13 bps slippage).
 
-**Metrics.** These follow course convention. Returns are aggregated to daily, Sharpe = mean / std × √252, and
+**Metrics.** Returns are aggregated to daily, Sharpe = mean / std × √252, and
 alpha, alpha t-stat, beta and correlation come from an OLS regression on BTC daily returns. The √252 convention on
 365-day crypto data understates Sharpe by about 17%; it is kept for consistency.
 
@@ -93,7 +93,7 @@ partly mechanical. The **break-even cost is 43 bps**, and at h = 5 the result su
 
 ### 4.2 The volume tilt did not survive costs
 
-The course brief suggests activity indicators strengthen momentum. Earlier tests found the opposite sign: momentum
+Activity and new-information indicators are widely claimed to strengthen momentum. Earlier tests found the opposite sign: momentum
 worked better on relatively *quiet* coins. The overlay tested was `conviction × exp(λ · volume z-score)`,
 re-normalized per leg to stay dollar-neutral.
 
