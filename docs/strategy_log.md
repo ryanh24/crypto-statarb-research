@@ -268,7 +268,7 @@ The walk-forward carries λ ∈ {−1, −0.5, 0, +0.5, +1}: beyond |λ| = 1 the
 is a judgment made on TRAIN data overlapping most walk-forward windows.
 
 > The earlier matched-turnover frontier, random-control comparison and joint (n, h, λ) walk-forward were removed
-> from the notebook in the cleanup; they remain in git history at `f513091`. Their method lesson stands — **a
+> from the notebook in the cleanup; they remain in git history at `832ece6`. Their method lesson stands — **a
 > control must be matched on what the intervention spends** — and panel (b) now carries the mechanism.
 
 ### 13.3 Robustness: not load-bearing *through 2025-07*
@@ -371,7 +371,7 @@ the 60-coin panel is a survivor set; Binance.US volume fell from ~$62M/day to ~$
 
 The 2025-07-01 split was compromised (earlier full-sample work; an old 80/20 boundary at 2025-09-22 inside it),
 so it is no longer scored as a holdout. The rolling walk-forward replaces it and runs through 2026-08-28. The
-research protocol's split table carries a note that the rolling walk-forward superseded it (added in `bd23337`).
+research protocol's split table carries a note that the rolling walk-forward superseded it (added in `e7487e7`).
 `test_only()` remains uncalled.
 
 ### 13.6 A convention mismatch worth knowing about
